@@ -1,2 +1,3 @@
 # aimachine-ai
-AI for AIMachine project
+
+AI for aimachine-project
