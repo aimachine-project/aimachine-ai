@@ -47,10 +47,10 @@ cursor = conn.cursor()
 
 create_table()  # use only once
 
-username = input("New username: ")
-password = input("New password: ")
+user = input("New username: ")
+key = input("New password: ")
 
-add_user(username, password)
+add_user(user, key)
 
 login()
 
