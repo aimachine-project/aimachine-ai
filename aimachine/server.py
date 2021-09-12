@@ -8,10 +8,11 @@ import flask
 import websocket
 
 APP = flask.Flask(__name__)
+TICTACTOE_URL = 'ws://localhost:8080/games/tictactoe'
+TICTACTOE_EXTENDED_URL = 'ws://localhost:8080/games/tictactoenfields'
 
 WEBSOCKET_CLIENTS: List[websocket.WebSocketApp] = []
 PROCESSES: Dict[websocket.WebSocketApp, multiprocessing.Process] = {}
-TICTACTOE_URL = 'ws://localhost:8080/games/tictactoe'
 GAME_IDS: Dict[websocket.WebSocket, str] = {}
 CLIENT_IDS: Dict[websocket.WebSocket, str] = {}
 BOARDS: Dict[websocket.WebSocket, np.ndarray] = {}
@@ -26,6 +27,11 @@ def health_check():
 def on_open(ws):
     print("client socket open")
     BOARDS[ws] = BLANK_VALUE * np.zeros((3, 3), int)
+
+
+def on_open_extended(ws):
+    print("client socket open")
+    BOARDS[ws] = BLANK_VALUE * np.zeros((14, 14), int)
 
 
 def on_message(ws: websocket.WebSocket, event: str):
@@ -79,10 +85,27 @@ def create_ws(ws):
 
 
 @APP.route("/tictactoe")
-def connect_computer_player():
+def connect_ai_tictactoe():
     websocket.enableTrace(True)
     client = websocket.WebSocketApp(TICTACTOE_URL,
                                     on_open=on_open,
+                                    on_message=on_message,
+                                    on_error=on_error,
+                                    on_close=on_close)
+    WEBSOCKET_CLIENTS.append(client)
+    process_name = 'ws_{}'.format(WEBSOCKET_CLIENTS.index(client))
+    print('process name: {}'.format(process_name))
+    process = multiprocessing.Process(name=process_name, target=create_ws, args=(client,), daemon=True)
+    process.start()
+    PROCESSES[client] = process
+    return "AI client created", 201
+
+
+@APP.route("/tictactoeextended")
+def connect_ai_tictactoe_extended():
+    websocket.enableTrace(True)
+    client = websocket.WebSocketApp(TICTACTOE_EXTENDED_URL,
+                                    on_open=on_open_extended,
                                     on_message=on_message,
                                     on_error=on_error,
                                     on_close=on_close)
