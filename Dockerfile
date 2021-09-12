@@ -7,7 +7,7 @@ python3 \
 python3-dev \
 pip \
 nano \
-sudo \
+sudo
 
 
 RUN useradd --create-home --shell /bin/bash aimachine && usermod -aG sudo aimachine
