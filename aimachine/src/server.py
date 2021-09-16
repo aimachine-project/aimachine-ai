@@ -43,7 +43,7 @@ def on_open_soccer(socket):
     BOARDS_SOCCER[socket] = boardsoccer.BoardSoccer()
 
 
-def on_message_tictactoe(socket: websocket.WebSocket, event: str):
+def on_message_soccer(socket: websocket.WebSocket, event: str):
     data = json.loads(event)
     event_type = data['eventType']
     event_message = data['eventMessage']
@@ -77,7 +77,7 @@ def on_message_tictactoe(socket: websocket.WebSocket, event: str):
         print('unhandled message occurred')
 
 
-def on_message_soccer(socket: websocket.WebSocket, event: str):
+def on_message_tictactoe(socket: websocket.WebSocket, event: str):
     data = json.loads(event)
     event_type = data['eventType']
     event_message = data['eventMessage']
