@@ -2,12 +2,12 @@ import json
 import multiprocessing
 import random
 from typing import Dict, List
-import boardsoccer
-import numpy as np
 
 import flask
+import numpy as np
 import websocket
 
+from aimachine.src import boardsoccer
 
 APP = flask.Flask(__name__)
 TICTACTOE_URL = 'ws://localhost:8080/games/tictactoe'
