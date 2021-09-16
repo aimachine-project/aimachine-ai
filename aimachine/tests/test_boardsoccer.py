@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 
-class BoardSoccerTest(TestCase):
+class TestBoardSoccer(TestCase):
 
     def test_init(self):
         self.assertFalse(2 == 1)
