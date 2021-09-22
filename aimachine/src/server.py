@@ -23,23 +23,23 @@ BOARDS_SOCCER: Dict[websocket.WebSocket, boardsoccer.BoardSoccer] = {}
 BLANK_VALUE = 0
 
 
-@APP.route("/")
+@APP.route('/')
 def health_check():
-    return "<h1>Greetings from Aimachine AI!</h1>", 200
+    return '<h1>Greetings from Aimachine AI!</h1>', 200
 
 
 def on_open_tictactoe(socket):
-    print("client socket open")
+    print('client socket open')
     BOARDS[socket] = BLANK_VALUE * np.zeros((3, 3), int)
 
 
 def on_open_tictactoe_extended(socket):
-    print("client socket open")
+    print('client socket open')
     BOARDS[socket] = BLANK_VALUE * np.zeros((14, 14), int)
 
 
 def on_open_soccer(socket):
-    print("client socket open")
+    print('client socket open')
     BOARDS_SOCCER[socket] = boardsoccer.BoardSoccer()
 
 
@@ -113,22 +113,24 @@ def on_message_tictactoe(socket: websocket.WebSocket, event: str):
         print('unhandled message occurred')
 
 
-def on_error():
-    print('error occurred')
+def on_error(ws, err):
+    print('game: {} has been disbanded'.format(GAME_IDS[ws]))
+    print('at: {}'.format(err))
 
 
 def on_close(socket, close_status_code, close_msg):
-    print("client socket closed")
-    print("close code: {}".format(close_status_code))
-    print("close message: {}".format(close_msg))
+    print('client socket closed')
+    print('close code: {}'.format(close_status_code))
+    print('close message: {}'.format(close_msg))
     PROCESSES[socket].terminate()
+    print('process {} terminated'.format(PROCESSES[socket].name))
 
 
 def run_websocket_app(socket):
     socket.run_forever()
 
 
-@APP.route("/tictactoe")
+@APP.route('/tictactoe')
 def connect_ai_tictactoe():
     websocket.enableTrace(True)
     client = websocket.WebSocketApp(TICTACTOE_URL,
@@ -142,10 +144,10 @@ def connect_ai_tictactoe():
     process = multiprocessing.Process(name=process_name, target=run_websocket_app, args=(client,), daemon=True)
     process.start()
     PROCESSES[client] = process
-    return "AI client created", 201
+    return 'AI client created', 201
 
 
-@APP.route("/tictactoeextended")
+@APP.route('/tictactoeextended')
 def connect_ai_tictactoe_extended():
     websocket.enableTrace(True)
     client = websocket.WebSocketApp(TICTACTOE_EXTENDED_URL,
@@ -159,10 +161,10 @@ def connect_ai_tictactoe_extended():
     process = multiprocessing.Process(name=process_name, target=run_websocket_app, args=(client,), daemon=True)
     process.start()
     PROCESSES[client] = process
-    return "AI client created", 201
+    return 'AI client created', 201
 
 
-@APP.route("/soccer")
+@APP.route('/soccer')
 def connect_ai_soccer():
     websocket.enableTrace(True)
     client = websocket.WebSocketApp(SOCCER_URL,
@@ -176,7 +178,7 @@ def connect_ai_soccer():
     process = multiprocessing.Process(name=process_name, target=run_websocket_app, args=(client,), daemon=True)
     process.start()
     PROCESSES[client] = process
-    return "AI client created", 201
+    return 'AI client created', 201
 
 
 if __name__ == '__main__':
