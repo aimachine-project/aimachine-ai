@@ -113,8 +113,8 @@ def on_message_tictactoe(socket: websocket.WebSocket, event: str):
         print('unhandled message occurred')
 
 
-def on_error(ws, err):
-    print('game: {} has been disbanded'.format(GAME_IDS[ws]))
+def on_error(socket: websocket.WebSocket, err):
+    print('game: {} has been disbanded'.format(GAME_IDS[socket]))
     print('at: {}'.format(err))
 
 
