@@ -1,13 +1,100 @@
-version: 2
+version: 2.1
+
+workflows:
+  Check and Test:
+    jobs:
+      - Static Analysis
+      - Test
+
+  Deploy:
+    jobs:
+      - Trigger Deploy:
+          type: approval
+          filters:
+            branches:
+              only: /.*/
+
+      - Deploy to AWS:
+          requires:
+            - Trigger Deploy
+
+
 jobs:
-  build:
+  Static Analysis:
     docker:
       - image: circleci/python:3.8.8
+        auth:
+          username: $DOCKERHUB_LOGIN
+          password: $DOCKERHUB_PASSWORD
+
+    steps:
+      - checkout
+      - run: flake8 -v --statistics --count
+      - run: mypy aimachine --ignore-missing-imports
+      - run: pylint aimachine
+
+  Test:
+    docker:
+      - image: circleci/python:3.8.8
+        auth:
+          username: $DOCKERHUB_LOGIN
+          password: $DOCKERHUB_PASSWORD
 
     steps:
       - checkout
       - run: pip install -r requirements.txt
-      - run: flake8 -v --statistics --count
-      - run: mypy aimachine --ignore-missing-imports
-      - run: pylint aimachine
       - run: pytest -v
+
+  Deploy to AWS:
+    docker:
+      - image: circleci/openjdk:11-jdk
+        auth:
+          username: $DOCKERHUB_LOGIN
+          password: $DOCKERHUB_PASSWORD
+
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.2
+
+      - run:
+          name: Build and push AI Docker image
+          command: |
+            docker build -t $DOCKERHUB_LOGIN/aimachine-ai .
+            echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_LOGIN --password-stdin
+            docker push $DOCKERHUB_LOGIN/aimachine-ai
+
+      - run:
+          name: Build and push Frontend Docker image
+          command: |
+            source deployconfig
+            if [ -d aimachine-frontend ]; then rm -rf aimachine-frontend; fi
+            git clone --branch $FRONT_BRANCH $FRONT_REPO_URL
+            if [ "$?" -eq 128 ]; then git clone --branch development $FRONT_REPO_URL; fi
+            cd aimachine-frontend
+            git pull
+            docker build -t $DOCKERHUB_LOGIN/aimachine-frontend .
+            echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_LOGIN --password-stdin
+            docker push $DOCKERHUB_LOGIN/aimachine-frontend
+
+      - run:
+          name: Build and push Backend Docker image
+          command: |
+            source deployconfig
+            if [ -d aimachine-backend ]; then rm -rf aimachine-backend; fi
+            git clone --branch $BACKEND_BRANCH $BACKEND_REPO_URL
+            if [ "$?" -eq 128 ]; then git clone --branch development $BACKEND_REPO_URL; fi
+            cd aimachine-backend
+            git pull
+            sh gradlew bootJar
+            docker build -t $DOCKERHUB_LOGIN/aimachine-backend .
+            echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_LOGIN --password-stdin
+            docker push $DOCKERHUB_LOGIN/aimachine-backend
+
+      - run:
+          name: Deploy to AWS
+          command: |
+            echo -e "$AWS_KEY" > aws.pem
+            chmod 400 aws.pem
+            ssh -o "StrictHostKeyChecking no" -o "LogLevel ERROR" -i "aws.pem" $AWS_URL 'sh startup.sh'
+            echo 🦄
