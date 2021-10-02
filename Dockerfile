@@ -11,7 +11,7 @@ pip \
 nano \
 sudo
 
-COPY requirements.txt aimachine/*.py ./
+COPY requirements.txt aimachine/*.py /
 
 RUN pip install -r requirements.txt
 
