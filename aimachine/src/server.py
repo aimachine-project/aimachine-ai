@@ -123,6 +123,10 @@ def on_close(socket, close_status_code, close_msg):
     print('close code: {}'.format(close_status_code))
     print('close message: {}'.format(close_msg))
     PROCESSES[socket].terminate()
+    del GAME_IDS[socket]
+    del CLIENT_IDS[socket]
+    del BOARDS[socket]
+    del BOARDS_SOCCER[socket]
     print('process {} terminated'.format(PROCESSES[socket].name))
 
 
