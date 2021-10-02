@@ -11,8 +11,8 @@ pip \
 nano \
 sudo
 
-COPY requirements.txt aimachine/src/*.py /
+COPY requirements.txt aimachine /aimachine/
 
-RUN pip install -r requirements.txt
+RUN pip install -r aimachine/requirements.txt
 
-ENTRYPOINT ["python3","server.py"]
+ENTRYPOINT ["python3","-m","aimachine"]

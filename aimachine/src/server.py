@@ -179,7 +179,3 @@ def connect_ai_soccer():
     process.start()
     PROCESSES[client] = process
     return 'AI client created', 201
-
-
-if __name__ == '__main__':
-    APP.run(host='0.0.0.0', port=8081, debug=False)
