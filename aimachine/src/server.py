@@ -1,6 +1,7 @@
 import json
 import multiprocessing
 import random
+import time
 from typing import Dict, List
 
 import flask
@@ -136,6 +137,7 @@ def run_websocket_app(socket):
 
 @APP.route('/tictactoe')
 def connect_ai_tictactoe():
+    time.sleep(1)
     websocket.enableTrace(True)
     client = websocket.WebSocketApp(TICTACTOE_URL,
                                     on_open=on_open_tictactoe,
@@ -153,6 +155,7 @@ def connect_ai_tictactoe():
 
 @APP.route('/tictactoeextended')
 def connect_ai_tictactoe_extended():
+    time.sleep(1)
     websocket.enableTrace(True)
     client = websocket.WebSocketApp(TICTACTOE_EXTENDED_URL,
                                     on_open=on_open_tictactoe_extended,
@@ -170,6 +173,7 @@ def connect_ai_tictactoe_extended():
 
 @APP.route('/soccer')
 def connect_ai_soccer():
+    time.sleep(1)
     websocket.enableTrace(True)
     client = websocket.WebSocketApp(SOCCER_URL,
                                     on_open=on_open_soccer,
