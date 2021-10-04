@@ -10,9 +10,9 @@ import websocket
 from aimachine.src import boardsoccer
 
 APP = flask.Flask(__name__)
-TICTACTOE_URL = 'ws://localhost:8080/games/tictactoe'
-TICTACTOE_EXTENDED_URL = 'ws://localhost:8080/games/tictactoenfields'
-SOCCER_URL = 'ws://localhost:8080/games/soccer'
+TICTACTOE_URL = 'ws://backend:8080/games/tictactoe'
+TICTACTOE_EXTENDED_URL = 'ws://backend:8080/games/tictactoenfields'
+SOCCER_URL = 'ws://backend:8080/games/soccer'
 
 WEBSOCKET_CLIENTS: List[websocket.WebSocketApp] = []
 PROCESSES: Dict[websocket.WebSocketApp, multiprocessing.Process] = {}
