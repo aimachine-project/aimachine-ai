@@ -2,7 +2,7 @@ import json
 import multiprocessing
 import random
 import time
-from typing import Dict, List
+from typing import Dict
 
 import flask
 import numpy as np
@@ -11,11 +11,11 @@ import websocket
 from aimachine.src import boardsoccer
 
 APP = flask.Flask(__name__)
+
 TICTACTOE_URL = 'ws://backend:8080/games/tictactoe'
 TICTACTOE_EXTENDED_URL = 'ws://backend:8080/games/tictactoenfields'
 SOCCER_URL = 'ws://backend:8080/games/soccer'
 
-WEBSOCKET_CLIENTS: List[websocket.WebSocketApp] = []
 PROCESSES: Dict[websocket.WebSocketApp, multiprocessing.Process] = {}
 GAME_IDS: Dict[websocket.WebSocket, str] = {}
 CLIENT_IDS: Dict[websocket.WebSocket, str] = {}
@@ -29,17 +29,17 @@ def health_check():
     return '<h1>Greetings from Aimachine AI!</h1>', 200
 
 
-def on_open_tictactoe(socket):
+def on_open_tictactoe(socket: websocket.WebSocket):
     print('client socket open')
     BOARDS[socket] = BLANK_VALUE * np.zeros((3, 3), int)
 
 
-def on_open_tictactoe_extended(socket):
+def on_open_tictactoe_extended(socket: websocket.WebSocket):
     print('client socket open')
     BOARDS[socket] = BLANK_VALUE * np.zeros((14, 14), int)
 
 
-def on_open_soccer(socket):
+def on_open_soccer(socket: websocket.WebSocket):
     print('client socket open')
     BOARDS_SOCCER[socket] = boardsoccer.BoardSoccer()
 
@@ -131,21 +131,21 @@ def on_close(socket, close_status_code, close_msg):
     print('process {} terminated'.format(PROCESSES[socket].name))
 
 
-def run_websocket_app(socket):
-    socket.run_forever()
+def run_websocket_app(websocket_app: websocket.WebSocketApp):
+    websocket_app.run_forever()
 
 
 @APP.route('/tictactoe')
 def connect_ai_tictactoe():
     time.sleep(1)
-    websocket.enableTrace(True)
-    client = websocket.WebSocketApp(TICTACTOE_URL,
+    game_type = flask.request.args.get('requestedGameType')
+    game_id = flask.request.args.get('gameId')
+    client = websocket.WebSocketApp("{}?gameType={}&gameId={}".format(TICTACTOE_URL, game_type, game_id),
                                     on_open=on_open_tictactoe,
                                     on_message=on_message_tictactoe,
                                     on_error=on_error,
                                     on_close=on_close)
-    WEBSOCKET_CLIENTS.append(client)
-    process_name = 'ws_process_{}'.format(WEBSOCKET_CLIENTS.index(client))
+    process_name = 'ws_client_{}'.format(len(PROCESSES))
     print('process name: {}'.format(process_name))
     process = multiprocessing.Process(name=process_name, target=run_websocket_app, args=(client,), daemon=True)
     process.start()
@@ -156,14 +156,14 @@ def connect_ai_tictactoe():
 @APP.route('/tictactoeextended')
 def connect_ai_tictactoe_extended():
     time.sleep(1)
-    websocket.enableTrace(True)
-    client = websocket.WebSocketApp(TICTACTOE_EXTENDED_URL,
+    game_type = flask.request.args.get('requestedGameType')
+    game_id = flask.request.args.get('gameId')
+    client = websocket.WebSocketApp("{}?gameType={}&gameId={}".format(TICTACTOE_EXTENDED_URL, game_type, game_id),
                                     on_open=on_open_tictactoe_extended,
                                     on_message=on_message_tictactoe,
                                     on_error=on_error,
                                     on_close=on_close)
-    WEBSOCKET_CLIENTS.append(client)
-    process_name = 'ws_{}'.format(WEBSOCKET_CLIENTS.index(client))
+    process_name = 'ws_client_{}'.format(len(PROCESSES))
     print('process name: {}'.format(process_name))
     process = multiprocessing.Process(name=process_name, target=run_websocket_app, args=(client,), daemon=True)
     process.start()
@@ -174,14 +174,14 @@ def connect_ai_tictactoe_extended():
 @APP.route('/soccer')
 def connect_ai_soccer():
     time.sleep(1)
-    websocket.enableTrace(True)
-    client = websocket.WebSocketApp(SOCCER_URL,
+    game_type = flask.request.args.get('requestedGameType')
+    game_id = flask.request.args.get('gameId')
+    client = websocket.WebSocketApp("{}?gameType={}&gameId={}".format(SOCCER_URL, game_type, game_id),
                                     on_open=on_open_soccer,
                                     on_message=on_message_soccer,
                                     on_error=on_error,
                                     on_close=on_close)
-    WEBSOCKET_CLIENTS.append(client)
-    process_name = 'ws_{}'.format(WEBSOCKET_CLIENTS.index(client))
+    process_name = 'ws_client_{}'.format(len(PROCESSES))
     print('process name: {}'.format(process_name))
     process = multiprocessing.Process(name=process_name, target=run_websocket_app, args=(client,), daemon=True)
     process.start()
