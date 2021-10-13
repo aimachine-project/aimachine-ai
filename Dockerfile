@@ -1,5 +1,7 @@
 FROM ubuntu:focal
 
+MAINTAINER Sebastian Syska (syska.seb@gmail.com)
+
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt update -y && apt install -y \
@@ -9,12 +11,8 @@ pip \
 nano \
 sudo
 
+COPY requirements.txt aimachine /aimachine/
 
-RUN useradd --create-home --shell /bin/bash aimachine && usermod -aG sudo aimachine
+RUN pip install -r aimachine/requirements.txt
 
-WORKDIR /home/aimachine
-
-COPY requirements.txt aimachine/*.py ./aimachine/
-
-RUN pip install -r requirements.txt
-
+ENTRYPOINT ["python3","-m","aimachine"]
