@@ -53,18 +53,18 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
         GAME_IDS[socket] = event_message
     elif event_type == 'client_id':
         CLIENT_IDS[socket] = event_message
-    elif event_type == 'field_to_be_marked':
+    elif event_type == 'new_move_to_mark':
         field_data = json.loads(event_message)
         row_index = field_data['rowIndex']
         col_index = field_data['colIndex']
         print('rowIndex, colIndex: {}-{}'.format(row_index, col_index))
         BOARDS_SOCCER[socket].make_link(row_index, col_index)
-    elif event_type == 'movement_allowed':
+    elif event_type == 'current_player':
         if event_message == CLIENT_IDS[socket]:
             available_indices = BOARDS_SOCCER[socket].get_available_node_indices()
             field_to_click = random.choice(available_indices)
             data_to_send = json.dumps({
-                'eventType': 'field_clicked',
+                'eventType': 'make_move',
                 'eventMessage': {
                     'gameId': GAME_IDS[socket],
                     'rowIndex': str(field_to_click[0]),
@@ -72,7 +72,11 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
                 }
             })
             socket.send(data_to_send)
-    elif event_type == 'server_message':
+    elif event_type == 'game_started':
+        print(event_message)
+    elif event_type == 'game_ended':
+        print(event_message)
+    elif event_type == 'game_disbanded':
         print(event_message)
     else:
         print('unhandled message occurred')
@@ -87,20 +91,20 @@ def on_message_tictactoe(socket: websocket.WebSocket, event: str):
         GAME_IDS[socket] = event_message
     elif event_type == 'client_id':
         CLIENT_IDS[socket] = event_message
-    elif event_type == 'field_to_be_marked':
+    elif event_type == 'new_move_to_mark':
         field_data = json.loads(event_message)
         row_index = field_data['rowIndex']
         col_index = field_data['colIndex']
         field_token = field_data['fieldToken']
         print('rowIndex, colIndex: {}-{}'.format(row_index, col_index))
         BOARDS[socket][row_index, col_index] = field_token
-    elif event_type == 'movement_allowed':
+    elif event_type == 'current_player':
         if event_message == CLIENT_IDS[socket]:
             row_indices, col_indices = np.where(BOARDS[socket] == BLANK_VALUE)
             free_pairs = list(zip(row_indices, col_indices))
             field_to_click = random.choice(free_pairs)
             data_to_send = json.dumps({
-                'eventType': 'field_clicked',
+                'eventType': 'make_move',
                 'eventMessage': {
                     'gameId': GAME_IDS[socket],
                     'rowIndex': str(field_to_click[0]),
@@ -108,7 +112,11 @@ def on_message_tictactoe(socket: websocket.WebSocket, event: str):
                 }
             })
             socket.send(data_to_send)
-    elif event_type == 'server_message':
+    elif event_type == 'game_started':
+        print(event_message)
+    elif event_type == 'game_ended':
+        print(event_message)
+    elif event_type == 'game_disbanded':
         print(event_message)
     else:
         print('unhandled message occurred')
