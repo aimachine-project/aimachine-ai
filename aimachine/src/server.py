@@ -1,6 +1,6 @@
 import json
-import multiprocessing
 import random
+import threading
 import time
 from typing import Dict
 
@@ -16,7 +16,6 @@ TICTACTOE_URL = 'ws://backend:8080/games/tictactoe'
 TICTACTOE_EXTENDED_URL = 'ws://backend:8080/games/tictactoenfields'
 SOCCER_URL = 'ws://backend:8080/games/soccer'
 
-PROCESSES: Dict[websocket.WebSocketApp, multiprocessing.Process] = {}
 GAME_IDS: Dict[websocket.WebSocket, str] = {}
 CLIENT_IDS: Dict[websocket.WebSocket, str] = {}
 BOARDS: Dict[websocket.WebSocket, np.ndarray] = {}
@@ -72,14 +71,8 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
                 }
             })
             socket.send(data_to_send)
-    elif event_type == 'game_started':
-        print(event_message)
-    elif event_type == 'game_ended':
-        print(event_message)
-    elif event_type == 'game_disbanded':
-        print(event_message)
     else:
-        print('unhandled message occurred')
+        print(event_message)
 
 
 def on_message_tictactoe(socket: websocket.WebSocket, event: str):
@@ -112,14 +105,8 @@ def on_message_tictactoe(socket: websocket.WebSocket, event: str):
                 }
             })
             socket.send(data_to_send)
-    elif event_type == 'game_started':
-        print(event_message)
-    elif event_type == 'game_ended':
-        print(event_message)
-    elif event_type == 'game_disbanded':
-        print(event_message)
     else:
-        print('unhandled message occurred')
+        print(event_message)
 
 
 def on_error(socket: websocket.WebSocket, err):
@@ -127,20 +114,14 @@ def on_error(socket: websocket.WebSocket, err):
     print('at: {}'.format(err))
 
 
-def on_close(socket, close_status_code, close_msg):
+def on_close(socket: websocket.WebSocket, close_status_code, close_msg):
     print('client socket closed')
     print('close code: {}'.format(close_status_code))
     print('close message: {}'.format(close_msg))
-    PROCESSES[socket].terminate()
     del GAME_IDS[socket]
     del CLIENT_IDS[socket]
     del BOARDS[socket]
     del BOARDS_SOCCER[socket]
-    print('process {} terminated'.format(PROCESSES[socket].name))
-
-
-def run_websocket_app(websocket_app: websocket.WebSocketApp):
-    websocket_app.run_forever()
 
 
 @APP.route('/tictactoe')
@@ -153,11 +134,10 @@ def connect_ai_tictactoe():
                                     on_message=on_message_tictactoe,
                                     on_error=on_error,
                                     on_close=on_close)
-    process_name = 'ws_client_{}'.format(len(PROCESSES))
-    print('process name: {}'.format(process_name))
-    process = multiprocessing.Process(name=process_name, target=run_websocket_app, args=(client,), daemon=True)
-    process.start()
-    PROCESSES[client] = process
+    thread_name = 'ws_client_{}'.format(game_id)
+    print('thread name: {}'.format(thread_name))
+    thread = threading.Thread(name=thread_name, target=client.run_forever, daemon=True)
+    thread.start()
     return 'AI client created', 201
 
 
@@ -171,11 +151,10 @@ def connect_ai_tictactoe_extended():
                                     on_message=on_message_tictactoe,
                                     on_error=on_error,
                                     on_close=on_close)
-    process_name = 'ws_client_{}'.format(len(PROCESSES))
-    print('process name: {}'.format(process_name))
-    process = multiprocessing.Process(name=process_name, target=run_websocket_app, args=(client,), daemon=True)
-    process.start()
-    PROCESSES[client] = process
+    thread_name = 'ws_client_{}'.format(game_id)
+    print('thread name: {}'.format(thread_name))
+    thread = threading.Thread(name=thread_name, target=client.run_forever, daemon=True)
+    thread.start()
     return 'AI client created', 201
 
 
@@ -189,9 +168,8 @@ def connect_ai_soccer():
                                     on_message=on_message_soccer,
                                     on_error=on_error,
                                     on_close=on_close)
-    process_name = 'ws_client_{}'.format(len(PROCESSES))
-    print('process name: {}'.format(process_name))
-    process = multiprocessing.Process(name=process_name, target=run_websocket_app, args=(client,), daemon=True)
-    process.start()
-    PROCESSES[client] = process
+    thread_name = 'ws_client_{}'.format(game_id)
+    print('thread name: {}'.format(thread_name))
+    thread = threading.Thread(name=thread_name, target=client.run_forever, daemon=True)
+    thread.start()
     return 'AI client created', 201
