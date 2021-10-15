@@ -3,7 +3,7 @@ import copy
 import random
 import threading
 import time
-from typing import Dict
+from typing import Dict, Tuple
 
 import flask
 import numpy as np
@@ -62,7 +62,7 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
     elif event_type == 'current_player':
         if event_message == CLIENT_IDS[socket]:
             available_indices = BOARDS_SOCCER[socket].get_available_node_indices()
-            field_to_click = ()
+            field_to_click: Tuple[int, int] = (0, 0)
             while len(available_indices) > 1:
                 field_to_click = random.choice(available_indices)
                 tmp = copy.deepcopy(BOARDS_SOCCER[socket])
