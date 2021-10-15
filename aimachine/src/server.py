@@ -67,7 +67,18 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
                 field_to_click = random.choice(available_indices)
                 tmp = copy.deepcopy(BOARDS_SOCCER[socket])
                 tmp.make_link(field_to_click[0], field_to_click[1])
-                if tmp.current_node.has_any_free_link() and tmp.current_node.row_index != 0:
+                if tmp.current_node.has_any_free_link() \
+                        and tmp.current_node.row_index != 0 \
+                        and not tmp.current_node.col_index == boardsoccer.BoardSoccer.BOARD_WIDTH \
+                        and not tmp.current_node.col_index == 0 \
+                        and not (tmp.current_node.row_index == 1 and tmp.current_node.col_index == 1) \
+                        and not (tmp.current_node.row_index == 1 and tmp.current_node.col_index == (
+                        boardsoccer.BoardSoccer.BOARD_WIDTH - 1)) \
+                        and not (tmp.current_node.row_index == (
+                        boardsoccer.BoardSoccer.BOARD_HEIGHT - 1) and tmp.current_node.col_index == 1) \
+                        and not (tmp.current_node.row_index == (
+                        boardsoccer.BoardSoccer.BOARD_HEIGHT - 1) and tmp.current_node.col_index == (
+                                         boardsoccer.BoardSoccer.BOARD_WIDTH - 1)):
                     break
                 available_indices.remove(field_to_click)
 
