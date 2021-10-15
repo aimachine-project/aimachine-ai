@@ -66,6 +66,7 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
         if event_message == CLIENT_IDS[socket]:
             tmp = copy.deepcopy(BOARDS_SOCCER[socket])
             available_indices = tmp.get_available_node_indices()
+            random.shuffle(available_indices)
             available_indices.sort(key=lambda x: len(tmp.nodes[x[0]][x[1]].links))
             available_indices.sort(key=lambda x: abs(tmp.middleColIndex - x[1]))
             available_indices.sort(key=lambda x: x[0], reverse=True)
