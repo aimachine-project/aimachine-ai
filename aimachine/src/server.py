@@ -66,8 +66,10 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
         if event_message == CLIENT_IDS[socket]:
             tmp = copy.deepcopy(BOARDS_SOCCER[socket])
             available_indices = tmp.get_available_node_indices()
-            random.shuffle(available_indices)
+            # random.shuffle(available_indices)
             available_indices.sort(key=lambda x: len(tmp.nodes[x[0]][x[1]].links))
+            available_indices.sort(key=lambda x: abs(tmp.middleColIndex - x[1]))
+            available_indices.sort(key=lambda x: x[0], reverse=True)
             field_to_click = available_indices[0]
             while len(available_indices) > 1:
                 tmp.make_link(field_to_click[0], field_to_click[1])
@@ -75,12 +77,8 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
                         and tmp.current_node.row_index != 0 \
                         and tmp.current_node.col_index != 0 \
                         and tmp.current_node.col_index != BOARD_WIDTH \
-                        and (tmp.current_node.row_index != 1 or tmp.current_node.col_index != 1) \
-                        and (tmp.current_node.row_index != 1 or tmp.current_node.col_index != BOARD_WIDTH - 1) \
-                        and (tmp.current_node.row_index != BOARD_HEIGHT - 1 or
-                             tmp.current_node.col_index != 1) \
-                        and (tmp.current_node.row_index != BOARD_HEIGHT - 1 or
-                             tmp.current_node.col_index != BOARD_WIDTH - 1):
+                        and (tmp.current_node.row_index not in (1, BOARD_HEIGHT - 1) or
+                             tmp.current_node.col_index not in (1, BOARD_WIDTH - 1)):
                     break
                 available_indices.remove(field_to_click)
                 field_to_click = available_indices[0]
