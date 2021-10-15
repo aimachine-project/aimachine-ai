@@ -10,6 +10,7 @@ import numpy as np
 import websocket
 
 from aimachine.src import boardsoccer
+from aimachine.src.nodelink import NodeLink
 
 APP = flask.Flask(__name__)
 
@@ -67,9 +68,8 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
             tmp = copy.deepcopy(BOARDS_SOCCER[socket])
             available_indices = tmp.get_available_node_indices()
             random.shuffle(available_indices)
-            available_indices.sort(key=lambda x: len(tmp.nodes[x[0]][x[1]].links))
-            available_indices.sort(key=lambda x: abs(tmp.middleColIndex - x[1]))
-            available_indices.sort(key=lambda x: x[0], reverse=True)
+            available_indices = sorted(available_indices, key=lambda x: (
+                BOARD_HEIGHT - x[0], abs(tmp.middleColIndex - x[1]), len(NodeLink) - len(tmp.nodes[x[0]][x[1]].links)))
             field_to_click = available_indices[0]
             while len(available_indices) > 1:
                 tmp.make_link(field_to_click[0], field_to_click[1])
