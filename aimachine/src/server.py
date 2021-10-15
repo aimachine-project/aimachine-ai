@@ -1,9 +1,9 @@
-import json
 import copy
+import json
 import random
 import threading
 import time
-from typing import Dict, Tuple
+from typing import Dict
 
 import flask
 import numpy as np
