@@ -13,9 +13,9 @@ from aimachine.src import boardsoccer
 
 APP = flask.Flask(__name__)
 
-TICTACTOE_URL = 'ws://localhost:8080/games/tictactoe'
-TICTACTOE_EXTENDED_URL = 'ws://localhost:8080/games/tictactoenfields'
-SOCCER_URL = 'ws://localhost:8080/games/soccer'
+TICTACTOE_URL = 'ws://backend:8080/games/tictactoe'
+TICTACTOE_EXTENDED_URL = 'ws://backend:8080/games/tictactoenfields'
+SOCCER_URL = 'ws://backend:8080/games/soccer'
 
 GAME_IDS: Dict[websocket.WebSocket, str] = {}
 CLIENT_IDS: Dict[websocket.WebSocket, str] = {}
@@ -66,7 +66,6 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
         if event_message == CLIENT_IDS[socket]:
             tmp = copy.deepcopy(BOARDS_SOCCER[socket])
             available_indices = tmp.get_available_node_indices()
-            # random.shuffle(available_indices)
             available_indices.sort(key=lambda x: len(tmp.nodes[x[0]][x[1]].links))
             available_indices.sort(key=lambda x: abs(tmp.middleColIndex - x[1]))
             available_indices.sort(key=lambda x: x[0], reverse=True)
