@@ -1,4 +1,5 @@
 import json
+import copy
 import random
 import threading
 import time
@@ -12,9 +13,9 @@ from aimachine.src import boardsoccer
 
 APP = flask.Flask(__name__)
 
-TICTACTOE_URL = 'ws://backend:8080/games/tictactoe'
-TICTACTOE_EXTENDED_URL = 'ws://backend:8080/games/tictactoenfields'
-SOCCER_URL = 'ws://backend:8080/games/soccer'
+TICTACTOE_URL = 'ws://localhost:8080/games/tictactoe'
+TICTACTOE_EXTENDED_URL = 'ws://localhost:8080/games/tictactoenfields'
+SOCCER_URL = 'ws://localhost:8080/games/soccer'
 
 GAME_IDS: Dict[websocket.WebSocket, str] = {}
 CLIENT_IDS: Dict[websocket.WebSocket, str] = {}
@@ -61,7 +62,15 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
     elif event_type == 'current_player':
         if event_message == CLIENT_IDS[socket]:
             available_indices = BOARDS_SOCCER[socket].get_available_node_indices()
-            field_to_click = random.choice(available_indices)
+            field_to_click = ()
+            while len(available_indices) > 1:
+                field_to_click = random.choice(available_indices)
+                tmp = copy.deepcopy(BOARDS_SOCCER[socket])
+                tmp.make_link(field_to_click[0], field_to_click[1])
+                if tmp.current_node.has_any_free_link() and tmp.current_node.row_index != 0:
+                    break
+                available_indices.remove(field_to_click)
+
             data_to_send = json.dumps({
                 'eventType': 'make_move',
                 'eventMessage': {
