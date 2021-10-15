@@ -62,16 +62,16 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
     elif event_type == 'current_player':
         if event_message == CLIENT_IDS[socket]:
             available_indices = BOARDS_SOCCER[socket].get_available_node_indices()
-            field_to_click: Tuple[int, int] = (-1, -1)
+            field_to_click = random.choice(available_indices)
             while len(available_indices) > 1:
-                field_to_click = random.choice(available_indices)
                 tmp = copy.deepcopy(BOARDS_SOCCER[socket])
                 tmp.make_link(field_to_click[0], field_to_click[1])
                 if tmp.current_node.has_any_free_link() \
                         and tmp.current_node.row_index != 0 \
                         and not tmp.current_node.col_index == boardsoccer.BoardSoccer.BOARD_WIDTH \
                         and not tmp.current_node.col_index == 0 \
-                        and not (tmp.current_node.row_index == 1 and tmp.current_node.col_index == 1) \
+                        and not \
+                        (tmp.current_node.row_index == 1 and tmp.current_node.col_index == 1) \
                         and not (tmp.current_node.row_index == 1 and tmp.current_node.col_index == (
                         boardsoccer.BoardSoccer.BOARD_WIDTH - 1)) \
                         and not (tmp.current_node.row_index == (
@@ -81,6 +81,7 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
                                          boardsoccer.BoardSoccer.BOARD_WIDTH - 1)):
                     break
                 available_indices.remove(field_to_click)
+                field_to_click = random.choice(available_indices)
 
             data_to_send = json.dumps({
                 'eventType': 'make_move',
