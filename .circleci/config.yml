@@ -87,7 +87,6 @@ jobs:
             if [ "$?" -eq 128 ]; then git clone --branch development $BACKEND_REPO_URL; fi
             cd aimachine-backend
             git pull
-            sh gradlew bootJar
             docker build -t $DOCKERHUB_LOGIN/aimachine-backend .
             echo $DOCKERHUB_PASSWORD | docker login -u $DOCKERHUB_LOGIN --password-stdin
             docker push $DOCKERHUB_LOGIN/aimachine-backend
