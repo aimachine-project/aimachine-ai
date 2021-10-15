@@ -13,15 +13,18 @@ from aimachine.src import boardsoccer
 
 APP = flask.Flask(__name__)
 
-TICTACTOE_URL = 'ws://backend:8080/games/tictactoe'
-TICTACTOE_EXTENDED_URL = 'ws://backend:8080/games/tictactoenfields'
-SOCCER_URL = 'ws://backend:8080/games/soccer'
+TICTACTOE_URL = 'ws://localhost:8080/games/tictactoe'
+TICTACTOE_EXTENDED_URL = 'ws://localhost:8080/games/tictactoenfields'
+SOCCER_URL = 'ws://localhost:8080/games/soccer'
 
 GAME_IDS: Dict[websocket.WebSocket, str] = {}
 CLIENT_IDS: Dict[websocket.WebSocket, str] = {}
 BOARDS: Dict[websocket.WebSocket, np.ndarray] = {}
 BOARDS_SOCCER: Dict[websocket.WebSocket, boardsoccer.BoardSoccer] = {}
 BLANK_VALUE = 0
+
+BOARD_HEIGHT = boardsoccer.BoardSoccer.BOARD_HEIGHT
+BOARD_WIDTH = boardsoccer.BoardSoccer.BOARD_WIDTH
 
 
 @APP.route('/')
@@ -61,27 +64,26 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
         BOARDS_SOCCER[socket].make_link(row_index, col_index)
     elif event_type == 'current_player':
         if event_message == CLIENT_IDS[socket]:
-            available_indices = BOARDS_SOCCER[socket].get_available_node_indices()
-            field_to_click = random.choice(available_indices)
+            tmp = copy.deepcopy(BOARDS_SOCCER[socket])
+            available_indices = tmp.get_available_node_indices()
+            random.shuffle(available_indices)
+            available_indices.sort(key=lambda x: len(tmp.nodes[x[0]][x[1]].links))
+            field_to_click = available_indices[0]
             while len(available_indices) > 1:
-                tmp = copy.deepcopy(BOARDS_SOCCER[socket])
                 tmp.make_link(field_to_click[0], field_to_click[1])
                 if tmp.current_node.has_any_free_link() \
                         and tmp.current_node.row_index != 0 \
-                        and not tmp.current_node.col_index == boardsoccer.BoardSoccer.BOARD_WIDTH \
-                        and not tmp.current_node.col_index == 0 \
-                        and not \
-                        (tmp.current_node.row_index == 1 and tmp.current_node.col_index == 1) \
-                        and not (tmp.current_node.row_index == 1 and tmp.current_node.col_index == (
-                        boardsoccer.BoardSoccer.BOARD_WIDTH - 1)) \
-                        and not (tmp.current_node.row_index == (
-                        boardsoccer.BoardSoccer.BOARD_HEIGHT - 1) and tmp.current_node.col_index == 1) \
-                        and not (tmp.current_node.row_index == (
-                        boardsoccer.BoardSoccer.BOARD_HEIGHT - 1) and tmp.current_node.col_index == (
-                                         boardsoccer.BoardSoccer.BOARD_WIDTH - 1)):
+                        and tmp.current_node.col_index != 0 \
+                        and tmp.current_node.col_index != BOARD_WIDTH \
+                        and (tmp.current_node.row_index != 1 or tmp.current_node.col_index != 1) \
+                        and (tmp.current_node.row_index != 1 or tmp.current_node.col_index != BOARD_WIDTH - 1) \
+                        and (tmp.current_node.row_index != BOARD_HEIGHT - 1 or
+                             tmp.current_node.col_index != 1) \
+                        and (tmp.current_node.row_index != BOARD_HEIGHT - 1 or
+                             tmp.current_node.col_index != BOARD_WIDTH - 1):
                     break
                 available_indices.remove(field_to_click)
-                field_to_click = random.choice(available_indices)
+                field_to_click = available_indices[0]
 
             data_to_send = json.dumps({
                 'eventType': 'make_move',
