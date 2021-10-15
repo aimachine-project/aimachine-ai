@@ -14,9 +14,9 @@ from aimachine.src.nodelink import NodeLink
 
 APP = flask.Flask(__name__)
 
-TICTACTOE_URL = 'ws://backend:8080/games/tictactoe'
-TICTACTOE_EXTENDED_URL = 'ws://backend:8080/games/tictactoenfields'
-SOCCER_URL = 'ws://backend:8080/games/soccer'
+TICTACTOE_URL = 'ws://localhost:8080/games/tictactoe'
+TICTACTOE_EXTENDED_URL = 'ws://localhost:8080/games/tictactoenfields'
+SOCCER_URL = 'ws://localhost:8080/games/soccer'
 
 GAME_IDS: Dict[websocket.WebSocket, str] = {}
 CLIENT_IDS: Dict[websocket.WebSocket, str] = {}
@@ -67,9 +67,9 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
         if event_message == CLIENT_IDS[socket]:
             tmp = copy.deepcopy(BOARDS_SOCCER[socket])
             available_indices = tmp.get_available_node_indices()
-            random.shuffle(available_indices)
-            available_indices = sorted(available_indices, key=lambda x: (
-                BOARD_HEIGHT - x[0], abs(tmp.middleColIndex - x[1]), len(NodeLink) - len(tmp.nodes[x[0]][x[1]].links)))
+            available_indices.sort(key=lambda x: len(tmp.nodes[x[0]][x[1]].links), reverse=True)
+            available_indices = sorted(available_indices, key=lambda x: (BOARD_HEIGHT - x[0],
+                                                                         abs(tmp.middleColIndex - x[1])))
             field_to_click = available_indices[0]
             while len(available_indices) > 1:
                 tmp.make_link(field_to_click[0], field_to_click[1])
