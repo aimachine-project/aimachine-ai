@@ -4,37 +4,37 @@ from aimachine.src.nodelink import NodeLink
 
 
 class BoardSoccer:
-    _BOARD_HEIGHT = 12
-    _BOARD_WIDTH = 10
+    BOARD_HEIGHT = 12
+    BOARD_WIDTH = 10
     GATE_WIDTH = 2
-    middleRowIndex = int(round(_BOARD_HEIGHT / 2))
-    middleColIndex = int(round(_BOARD_WIDTH / 2))
+    middleRowIndex = int(round(BOARD_HEIGHT / 2))
+    middleColIndex = int(round(BOARD_WIDTH / 2))
     gateHalfWidth = int(round(GATE_WIDTH / 2))
 
     def __init__(self):
-        self.nodes = [[Node(i, j, self) for j in range(self._BOARD_WIDTH + 1)] for i in range(self._BOARD_HEIGHT + 1)]
+        self.nodes = [[Node(i, j, self) for j in range(self.BOARD_WIDTH + 1)] for i in range(self.BOARD_HEIGHT + 1)]
         self.current_node = self.nodes[self.middleRowIndex][self.middleColIndex]
 
         # link gate rear borders
         for i in range(0, self.gateHalfWidth):
             self.nodes[0][self.middleColIndex - i].make_link(NodeLink.LINK_LEFT)
             self.nodes[0][self.middleColIndex + i].make_link(NodeLink.LINK_RIGHT)
-            self.nodes[self._BOARD_HEIGHT][self.middleColIndex - i].make_link(NodeLink.LINK_LEFT)
-            self.nodes[self._BOARD_HEIGHT][self.middleColIndex + i].make_link(NodeLink.LINK_RIGHT)
+            self.nodes[self.BOARD_HEIGHT][self.middleColIndex - i].make_link(NodeLink.LINK_LEFT)
+            self.nodes[self.BOARD_HEIGHT][self.middleColIndex + i].make_link(NodeLink.LINK_RIGHT)
         # link gate skews
         self.nodes[1][self.middleColIndex - self.gateHalfWidth].make_link(NodeLink.LINK_TOP_LEFT)
         self.nodes[1][self.middleColIndex + self.gateHalfWidth].make_link(NodeLink.LINK_TOP_RIGHT)
-        self.nodes[self._BOARD_HEIGHT - 1][self.middleColIndex - self.gateHalfWidth].make_link(
+        self.nodes[self.BOARD_HEIGHT - 1][self.middleColIndex - self.gateHalfWidth].make_link(
             NodeLink.LINK_BOTTOM_LEFT)
-        self.nodes[self._BOARD_HEIGHT - 1][self.middleColIndex + self.gateHalfWidth].make_link(
+        self.nodes[self.BOARD_HEIGHT - 1][self.middleColIndex + self.gateHalfWidth].make_link(
             NodeLink.LINK_BOTTOM_RIGHT)
         # link gate side borders
         self.nodes[0][self.middleColIndex - 1].make_link(NodeLink.LINK_BOTTOM)
         self.nodes[0][self.middleColIndex + 1].make_link(NodeLink.LINK_BOTTOM)
-        self.nodes[self._BOARD_HEIGHT][self.middleColIndex - 1].make_link(NodeLink.LINK_TOP)
-        self.nodes[self._BOARD_HEIGHT][self.middleColIndex + 1].make_link(NodeLink.LINK_TOP)
+        self.nodes[self.BOARD_HEIGHT][self.middleColIndex - 1].make_link(NodeLink.LINK_TOP)
+        self.nodes[self.BOARD_HEIGHT][self.middleColIndex + 1].make_link(NodeLink.LINK_TOP)
         # link vertical borders
-        for i in range(1, self._BOARD_HEIGHT):
+        for i in range(1, self.BOARD_HEIGHT):
             left_border_node = self.nodes[i][1]
             left_border_node.make_link(NodeLink.LINK_TOP)
             left_border_node.make_link(NodeLink.LINK_TOP_LEFT)
@@ -42,7 +42,7 @@ class BoardSoccer:
             left_border_node.make_link(NodeLink.LINK_BOTTOM_LEFT)
             left_border_node.make_link(NodeLink.LINK_BOTTOM)
 
-            right_border_node = self.nodes[i][self._BOARD_WIDTH - 1]
+            right_border_node = self.nodes[i][self.BOARD_WIDTH - 1]
             right_border_node.make_link(NodeLink.LINK_TOP)
             right_border_node.make_link(NodeLink.LINK_TOP_RIGHT)
             right_border_node.make_link(NodeLink.LINK_RIGHT)
@@ -58,21 +58,21 @@ class BoardSoccer:
             top_left_border_node.make_link(NodeLink.LINK_TOP_RIGHT)
             top_left_border_node.make_link(NodeLink.LINK_RIGHT)
 
-            top_right_border_node = self.nodes[1][self._BOARD_WIDTH - i]
+            top_right_border_node = self.nodes[1][self.BOARD_WIDTH - i]
             top_right_border_node.make_link(NodeLink.LINK_RIGHT)
             top_right_border_node.make_link(NodeLink.LINK_TOP_RIGHT)
             top_right_border_node.make_link(NodeLink.LINK_TOP)
             top_right_border_node.make_link(NodeLink.LINK_TOP_LEFT)
             top_right_border_node.make_link(NodeLink.LINK_LEFT)
 
-            bottom_left_node = self.nodes[self._BOARD_HEIGHT - 1][i]
+            bottom_left_node = self.nodes[self.BOARD_HEIGHT - 1][i]
             bottom_left_node.make_link(NodeLink.LINK_LEFT)
             bottom_left_node.make_link(NodeLink.LINK_BOTTOM_LEFT)
             bottom_left_node.make_link(NodeLink.LINK_BOTTOM)
             bottom_left_node.make_link(NodeLink.LINK_BOTTOM_RIGHT)
             bottom_left_node.make_link(NodeLink.LINK_RIGHT)
 
-            bottom_right_node = self.nodes[self._BOARD_HEIGHT - 1][self._BOARD_WIDTH - i]
+            bottom_right_node = self.nodes[self.BOARD_HEIGHT - 1][self.BOARD_WIDTH - i]
             bottom_right_node.make_link(NodeLink.LINK_RIGHT)
             bottom_right_node.make_link(NodeLink.LINK_BOTTOM_RIGHT)
             bottom_right_node.make_link(NodeLink.LINK_BOTTOM)
