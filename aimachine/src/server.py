@@ -1,5 +1,6 @@
 import copy
 import json
+import os
 import random
 import threading
 import time
@@ -13,9 +14,11 @@ from aimachine.src import boardsoccer
 
 APP = flask.Flask(__name__)
 
-TICTACTOE_URL = 'ws://backend:8080/games/tictactoe'
-TICTACTOE_EXTENDED_URL = 'ws://backend:8080/games/tictactoenfields'
-SOCCER_URL = 'ws://backend:8080/games/soccer'
+BACKEND_DOMAIN_NAME = os.environ.get('AIM_BACKEND_DOMAIN_NAME', 'localhost')
+WEBSOCKET_SERVER_BASE_URL = 'ws://{}:8080/games'.format(BACKEND_DOMAIN_NAME)
+TICTACTOE_URL = '{}/tictactoe'.format(WEBSOCKET_SERVER_BASE_URL)
+TICTACTOE_EXTENDED_URL = '{}/tictactoenfields'.format(WEBSOCKET_SERVER_BASE_URL)
+SOCCER_URL = '{}/soccer'.format(WEBSOCKET_SERVER_BASE_URL)
 
 GAME_IDS: Dict[websocket.WebSocket, str] = {}
 CLIENT_IDS: Dict[websocket.WebSocket, str] = {}
