@@ -1,4 +1,6 @@
-from typing import Tuple, List
+from __future__ import annotations
+
+from typing import Tuple, List, Set
 
 from aimachine.src.nodelink import NodeLink
 
@@ -101,7 +103,7 @@ class BoardSoccer:
             indices.append((self.current_node.row_index - 1, self.current_node.col_index - 1))
         return indices
 
-    def make_link(self, other_node_row_index: int, other_node_col_index: int):
+    def make_link(self, other_node_row_index: int, other_node_col_index: int) -> Node:
         current_node_row_index = self.current_node.row_index
         current_node_col_index = self.current_node.col_index
         rows_diff = other_node_row_index - current_node_row_index
@@ -130,6 +132,7 @@ class BoardSoccer:
         elif rows_diff == -1 and cols_diff == -1:
             if not self.current_node.has_link(NodeLink.LINK_TOP_LEFT):
                 self.current_node = self.current_node.make_link(NodeLink.LINK_TOP_LEFT)
+        return self.current_node
 
 
 class Node:
@@ -137,7 +140,7 @@ class Node:
         self.row_index = row_index
         self.col_index = col_index
         self._board = board
-        self.links: List[NodeLink] = []
+        self.links: Set[NodeLink] = set()
 
     def has_link(self, link: NodeLink) -> bool:
         return self.links.__contains__(link)
@@ -145,46 +148,46 @@ class Node:
     def has_any_free_link(self) -> bool:
         return len(self.links) < len(NodeLink)
 
-    def make_link(self, link: NodeLink):
+    def make_link(self, link: NodeLink) -> Node:
         if link is NodeLink.LINK_TOP:
-            self.links.append(link)
+            self.links.add(link)
             linked_node = self._board.nodes[self.row_index - 1][self.col_index]
-            linked_node.links.append(NodeLink.LINK_BOTTOM)
+            linked_node.links.add(NodeLink.LINK_BOTTOM)
             return linked_node
         elif link is NodeLink.LINK_TOP_RIGHT:
-            self.links.append(link)
+            self.links.add(link)
             linked_node = self._board.nodes[self.row_index - 1][self.col_index + 1]
-            linked_node.links.append(NodeLink.LINK_BOTTOM_LEFT)
+            linked_node.links.add(NodeLink.LINK_BOTTOM_LEFT)
             return linked_node
         elif link is NodeLink.LINK_RIGHT:
-            self.links.append(link)
+            self.links.add(link)
             linked_node = self._board.nodes[self.row_index][self.col_index + 1]
-            linked_node.links.append(NodeLink.LINK_LEFT)
+            linked_node.links.add(NodeLink.LINK_LEFT)
             return linked_node
         elif link is NodeLink.LINK_BOTTOM_RIGHT:
-            self.links.append(link)
+            self.links.add(link)
             linked_node = self._board.nodes[self.row_index + 1][self.col_index + 1]
-            linked_node.links.append(NodeLink.LINK_TOP_LEFT)
+            linked_node.links.add(NodeLink.LINK_TOP_LEFT)
             return linked_node
         elif link is NodeLink.LINK_BOTTOM:
-            self.links.append(link)
+            self.links.add(link)
             linked_node = self._board.nodes[self.row_index + 1][self.col_index]
-            linked_node.links.append(NodeLink.LINK_TOP)
+            linked_node.links.add(NodeLink.LINK_TOP)
             return linked_node
         elif link is NodeLink.LINK_BOTTOM_LEFT:
-            self.links.append(link)
+            self.links.add(link)
             linked_node = self._board.nodes[self.row_index + 1][self.col_index - 1]
-            linked_node.links.append(NodeLink.LINK_TOP_RIGHT)
+            linked_node.links.add(NodeLink.LINK_TOP_RIGHT)
             return linked_node
         elif link is NodeLink.LINK_LEFT:
-            self.links.append(link)
+            self.links.add(link)
             linked_node = self._board.nodes[self.row_index][self.col_index - 1]
-            linked_node.links.append(NodeLink.LINK_RIGHT)
+            linked_node.links.add(NodeLink.LINK_RIGHT)
             return linked_node
         elif link is NodeLink.LINK_TOP_LEFT:
-            self.links.append(link)
+            self.links.add(link)
             linked_node = self._board.nodes[self.row_index - 1][self.col_index - 1]
-            linked_node.links.append(NodeLink.LINK_BOTTOM_RIGHT)
+            linked_node.links.add(NodeLink.LINK_BOTTOM_RIGHT)
             return linked_node
         else:
             return self._board.current_node
