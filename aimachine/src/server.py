@@ -1,16 +1,16 @@
-import copy
 import json
 import os
 import random
 import threading
 import time
-from typing import Dict
+from typing import Dict, List, Tuple
 
 import flask
 import numpy as np
 import websocket
 
 from aimachine.src import boardsoccer
+from aimachine.src.utils.movementtree import MovementTree, SoccerStrategyPushing
 
 APP = flask.Flask(__name__)
 
@@ -20,6 +20,7 @@ TICTACTOE_URL = '{}/tictactoe'.format(WEBSOCKET_SERVER_BASE_URL)
 TICTACTOE_EXTENDED_URL = '{}/tictactoenfields'.format(WEBSOCKET_SERVER_BASE_URL)
 SOCCER_URL = '{}/soccer'.format(WEBSOCKET_SERVER_BASE_URL)
 
+CLIENTS: Dict[str, websocket.WebSocketApp] = {}
 GAME_IDS: Dict[websocket.WebSocket, str] = {}
 CLIENT_IDS: Dict[websocket.WebSocket, str] = {}
 BOARDS: Dict[websocket.WebSocket, np.ndarray] = {}
@@ -28,6 +29,8 @@ BLANK_VALUE = 0
 
 BOARD_HEIGHT = boardsoccer.BoardSoccer.BOARD_HEIGHT
 BOARD_WIDTH = boardsoccer.BoardSoccer.BOARD_WIDTH
+MOVEMENT_LIST_SOCCER: List[Tuple[int, int]] = list()
+SOCCER_STRATEGY = SoccerStrategyPushing()
 
 
 @APP.route('/')
@@ -67,35 +70,32 @@ def on_message_soccer(socket: websocket.WebSocket, event: str):
         BOARDS_SOCCER[socket].make_link(row_index, col_index)
     elif event_type == 'current_player':
         if event_message == CLIENT_IDS[socket]:
-            tmp = copy.deepcopy(BOARDS_SOCCER[socket])
-            available_indices = tmp.get_available_node_indices()
-            available_indices.sort(key=lambda x: len(tmp.nodes[x[0]][x[1]].links))
-            available_indices = sorted(available_indices, key=lambda x: (BOARD_HEIGHT - x[0],
-                                                                         abs(tmp.middleColIndex - x[1])))
-            field_to_click = available_indices[0]
-            while len(available_indices) > 1:
-                tmp.make_link(field_to_click[0], field_to_click[1])
-                if tmp.current_node.has_any_free_link() \
-                        and tmp.current_node.row_index != 0 \
-                        and tmp.current_node.col_index != 0 \
-                        and tmp.current_node.col_index != BOARD_WIDTH \
-                        and (tmp.current_node.row_index not in (1, BOARD_HEIGHT - 1) or
-                             tmp.current_node.col_index not in (1, BOARD_WIDTH - 1)):
-                    break
-                available_indices.remove(field_to_click)
-                field_to_click = available_indices[0]
-
-            data_to_send = json.dumps({
-                'eventType': 'make_move',
-                'eventMessage': {
-                    'gameId': GAME_IDS[socket],
-                    'rowIndex': str(field_to_click[0]),
-                    'colIndex': str(field_to_click[1])
-                }
-            })
-            socket.send(data_to_send)
+            handle_movement_soccer(socket)
     else:
         print(event_message)
+
+
+def handle_movement_soccer(socket: websocket.WebSocket):
+    global MOVEMENT_LIST_SOCCER
+    if len(MOVEMENT_LIST_SOCCER) < 1:
+        board = BOARDS_SOCCER[socket]
+        movement_tree = MovementTree(board)
+        if len(movement_tree.safe_nearest_movement_list) > 0:
+            movements_list = movement_tree.get_movements_list(SOCCER_STRATEGY)
+            MOVEMENT_LIST_SOCCER = movements_list
+        else:
+            MOVEMENT_LIST_SOCCER = [random.choice(board.get_available_node_indices())]
+    field_to_click = MOVEMENT_LIST_SOCCER[0]
+    data_to_send = json.dumps({
+        'eventType': 'make_move',
+        'eventMessage': {
+            'gameId': GAME_IDS[socket],
+            'rowIndex': str(field_to_click[0]),
+            'colIndex': str(field_to_click[1])
+        }
+    })
+    socket.send(data_to_send)
+    MOVEMENT_LIST_SOCCER.pop(0)
 
 
 def on_message_tictactoe(socket: websocket.WebSocket, event: str):
@@ -134,7 +134,9 @@ def on_message_tictactoe(socket: websocket.WebSocket, event: str):
 
 def on_error(socket: websocket.WebSocket, err):
     print('game: {} has been disbanded'.format(GAME_IDS[socket]))
-    print('at: {}'.format(err))
+    print('error at: {}'.format(err))
+    game_id: str = GAME_IDS[socket]
+    CLIENTS[game_id].close()
 
 
 def on_close(socket: websocket.WebSocket, close_status_code, close_msg):
@@ -191,6 +193,7 @@ def connect_ai_soccer():
                                     on_message=on_message_soccer,
                                     on_error=on_error,
                                     on_close=on_close)
+    CLIENTS[game_id] = client
     thread_name = 'ws_client_{}'.format(game_id)
     print('thread name: {}'.format(thread_name))
     thread = threading.Thread(name=thread_name, target=client.run_forever, daemon=True)

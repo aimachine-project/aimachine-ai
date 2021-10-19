@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Tuple, List
 
 from aimachine.src.nodelink import NodeLink
@@ -101,7 +103,7 @@ class BoardSoccer:
             indices.append((self.current_node.row_index - 1, self.current_node.col_index - 1))
         return indices
 
-    def make_link(self, other_node_row_index: int, other_node_col_index: int):
+    def make_link(self, other_node_row_index: int, other_node_col_index: int) -> Node:
         current_node_row_index = self.current_node.row_index
         current_node_col_index = self.current_node.col_index
         rows_diff = other_node_row_index - current_node_row_index
@@ -130,6 +132,7 @@ class BoardSoccer:
         elif rows_diff == -1 and cols_diff == -1:
             if not self.current_node.has_link(NodeLink.LINK_TOP_LEFT):
                 self.current_node = self.current_node.make_link(NodeLink.LINK_TOP_LEFT)
+        return self.current_node
 
 
 class Node:
@@ -145,7 +148,7 @@ class Node:
     def has_any_free_link(self) -> bool:
         return len(self.links) < len(NodeLink)
 
-    def make_link(self, link: NodeLink):
+    def make_link(self, link: NodeLink) -> Node:
         if link is NodeLink.LINK_TOP:
             self.links.append(link)
             linked_node = self._board.nodes[self.row_index - 1][self.col_index]
