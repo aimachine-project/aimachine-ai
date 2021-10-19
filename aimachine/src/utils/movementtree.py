@@ -43,6 +43,7 @@ class MovementTree:
 
     @staticmethod
     def _get_safe_movements(board: BoardSoccer) -> List[Tuple[int, int]]:
+        MovementTree.cnt = MovementTree.cnt + 1
         filtered = list()
         available_indices = board.get_available_node_indices()
         for indices in available_indices:
