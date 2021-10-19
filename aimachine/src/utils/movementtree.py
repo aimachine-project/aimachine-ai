@@ -18,34 +18,45 @@ class MovementTree:
         self.subtrees: List[MovementTree] = list()
 
     def get_movements_list(self, decision_strategy: SoccerStrategy) -> List[Tuple[int, int]]:
-        self._set_possible_movement_paths()
+        self._set_possible_movements()
         iterator = MovementTreeIterator(self, decision_strategy)
         movements_list: List[Tuple[int, int]] = list()
-        while iterator.has_subtrees():
-            subtree = iterator.chose_subtree()
+        while iterator.has_next():
+            subtree = iterator.next()
             current_node = subtree.board.current_node
             movements_list.append((current_node.row_index, current_node.col_index))
         return movements_list
 
-    def _set_possible_movement_paths(self):
+    def _set_possible_movements(self):
         for indices in self.safe_nearest_movement_list:
             tmp = copy.deepcopy(self.board)
-            tmp.make_link(indices[0], indices[1])
-            subtree = MovementTree(tmp)
-            self._add_subtree(subtree)
-            safe_movements = MovementTree._get_safe_movements(tmp)
-            if len(safe_movements) > 0 and len(tmp.current_node.links) != 1:
-                subtree._set_possible_movement_paths()
+            if tmp.current_node.row_index != 0 \
+                    and tmp.current_node.row_index != BOARD_HEIGHT \
+                    and tmp.current_node.col_index != 0 \
+                    and tmp.current_node.col_index != BOARD_WIDTH:
+                tmp.make_link(indices[0], indices[1])
+                subtree = MovementTree(tmp)
+                self.subtrees.append(subtree)
+                safe_movements = MovementTree._get_safe_movements(tmp)
+                if len(safe_movements) > 0 and len(tmp.current_node.links) != 1:
+                    subtree._set_possible_movements()
 
-    def _add_subtree(self, subtree: MovementTree):
-        self.subtrees.append(subtree)
+    cnt = 0
 
     @staticmethod
     def _get_safe_movements(board: BoardSoccer) -> List[Tuple[int, int]]:
+        MovementTree.cnt = MovementTree.cnt + 1
         filtered = list()
-        for indices in board.get_available_node_indices():
-            node_candidate = board.nodes[indices[0]][indices[1]]
-            if len(node_candidate.links) < len(NodeLink) - 1:
+        print(MovementTree.cnt)
+        available_indices = board.get_available_node_indices()
+        for indices in available_indices:
+            tmp = copy.deepcopy(board)
+            if tmp.current_node.has_any_free_link() \
+                    and tmp.current_node.row_index != 0 \
+                    and tmp.current_node.row_index != BOARD_HEIGHT \
+                    and tmp.current_node.col_index != 0 \
+                    and tmp.current_node.col_index != BOARD_WIDTH:
+                tmp.make_link(indices[0], indices[1])
                 filtered.append(indices)
         return filtered
 
@@ -55,10 +66,10 @@ class MovementTreeIterator:
         self.current_root = tree
         self._decision_strategy = decision_strategy
 
-    def has_subtrees(self) -> bool:
+    def has_next(self) -> bool:
         return len(self.current_root.subtrees) > 0
 
-    def chose_subtree(self) -> MovementTree:
+    def next(self) -> MovementTree:
         chosen_indices = self._decision_strategy.get_movement(self.current_root.board)
         self.current_root = self._find_subtree_by_current_node_indices(chosen_indices)
         return self.current_root
