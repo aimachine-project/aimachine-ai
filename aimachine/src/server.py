@@ -20,6 +20,7 @@ TICTACTOE_URL = '{}/tictactoe'.format(WEBSOCKET_SERVER_BASE_URL)
 TICTACTOE_EXTENDED_URL = '{}/tictactoenfields'.format(WEBSOCKET_SERVER_BASE_URL)
 SOCCER_URL = '{}/soccer'.format(WEBSOCKET_SERVER_BASE_URL)
 
+CLIENTS: Dict[str, websocket.WebSocketApp] = {}
 GAME_IDS: Dict[websocket.WebSocket, str] = {}
 CLIENT_IDS: Dict[websocket.WebSocket, str] = {}
 BOARDS: Dict[websocket.WebSocket, np.ndarray] = {}
@@ -134,7 +135,9 @@ def on_message_tictactoe(socket: websocket.WebSocket, event: str):
 
 def on_error(socket: websocket.WebSocket, err):
     print('game: {} has been disbanded'.format(GAME_IDS[socket]))
-    print('at: {}'.format(err))
+    print('error at: {}'.format(err))
+    game_id: str = GAME_IDS[socket]
+    CLIENTS[game_id].close()
 
 
 def on_close(socket: websocket.WebSocket, close_status_code, close_msg):
@@ -191,6 +194,7 @@ def connect_ai_soccer():
                                     on_message=on_message_soccer,
                                     on_error=on_error,
                                     on_close=on_close)
+    CLIENTS[game_id] = client
     thread_name = 'ws_client_{}'.format(game_id)
     print('thread name: {}'.format(thread_name))
     thread = threading.Thread(name=thread_name, target=client.run_forever, daemon=True)
